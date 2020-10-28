@@ -57,7 +57,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: filetrust/icap-infrastructure
-        token: ${{ secrets.GITHUBTOKEN }}
+        token: ${{ secrets.ICAPGITHUBTOKEN }}
         path: infra
     - name: Update image tag in icap-infrastructure repo
       run: |
@@ -78,4 +78,4 @@ jobs:
         sleep 5s
         gh pr merge $IMAGE_TAG -s
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
+        GITHUB_TOKEN: ${{ secrets.ICAPGITHUBTOKEN }}
