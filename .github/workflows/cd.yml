@@ -58,13 +58,13 @@ jobs:
       with:
         repository: filetrust/icap-infrastructure
         token: ${{ secrets.ICAPGITHUBTOKEN }}
-        ref: ${{ env.TAG }}
         path: infra
     - name: Update image tag in icap-infrastructure repo
       run: |
         cd infra
         IMAGE_TAG=${{ env.TAG }}-${GITHUB_SHA::7}
-        git checkout -b $IMAGE_TAG
+        get fetch
+        git checkout -b $IMAGE_TAG origin/${{ env.TAG }}
         git config user.email github-actions@github.com
         git config user.name github-actions
         
