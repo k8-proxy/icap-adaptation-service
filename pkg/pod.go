@@ -127,10 +127,6 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 							core.ResourceCPU: resource.MustParse("1"),
 							core.ResourceMemory: resource.MustParse("1Gi"),
 						},
-						Requests: core.ResourceList{
-							core.ResourceCPU: resource.MustParse("0.5"),
-							core.ResourceMemory: resource.MustParse("250Mi"),
-						},
 					},
 				},
 			},
