@@ -42,11 +42,12 @@ var (
 		[]string{"status"},
 	)
 
-	podNamespace            = os.Getenv("POD_NAMESPACE")
-	amqpURL                 = os.Getenv("AMQP_URL")
-	inputMount              = os.Getenv("INPUT_MOUNT")
-	outputMount             = os.Getenv("OUTPUT_MOUNT")
-	requestProcessingImage  = os.Getenv("REQUEST_PROCESSING_IMAGE")
+	podNamespace             = os.Getenv("POD_NAMESPACE")
+	amqpURL                  = os.Getenv("AMQP_URL")
+	inputMount               = os.Getenv("INPUT_MOUNT")
+	outputMount              = os.Getenv("OUTPUT_MOUNT")
+	requestProcessingImage   = os.Getenv("REQUEST_PROCESSING_IMAGE")
+	requestProcessingTimeout = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
 )
 
 func main() {
@@ -115,14 +116,15 @@ func processMessage(d amqp.Delivery) (bool, error) {
 	output := body["rebuilt-file-location"].(string)
 
 	podArgs := pod.PodArgs{
-		PodNamespace:           podNamespace,
-		FileID:                 fileID,
-		Input:                  input,
-		Output:                 output,
-		InputMount:             inputMount,
-		OutputMount:            outputMount,
-		ReplyTo:                d.ReplyTo,
-		RequestProcessingImage: requestProcessingImage,
+		PodNamespace:             podNamespace,
+		FileID:                   fileID,
+		Input:                    input,
+		Output:                   output,
+		InputMount:               inputMount,
+		OutputMount:              outputMount,
+		ReplyTo:                  d.ReplyTo,
+		RequestProcessingImage:   requestProcessingImage,
+		RequestProcessingTimeout: requestProcessingTimeout,
 	}
 
 	err = podArgs.GetClient()
