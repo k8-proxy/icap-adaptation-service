@@ -59,7 +59,7 @@ func (pa PodArgs) CreatePod() error {
 		pod, err = pa.Client.CoreV1().Pods(pa.PodNamespace).Create(ctx, podSpec, metav1.CreateOptions{})
 
 		if err != nil && attempt < 5 {
-			time.Sleep((time.Duration(attempt) * 5) * time.Second) // exponential 5 second wait
+			time.Sleep(5 * time.Second) // 5 second wait
 		}
 
 		return attempt < 5, err // try 5 times
