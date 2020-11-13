@@ -1,7 +1,7 @@
 package pod
 
 import (
-	"context" 
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -17,18 +17,19 @@ import (
 )
 
 type PodArgs struct {
-	PodNamespace           string
-	Client                 *kubernetes.Clientset
-	FileID                 string
-	Input                  string
-	Output                 string
-	InputMount             string
-	OutputMount            string
-	ReplyTo                string
-	RequestProcessingImage string
+	PodNamespace             string
+	Client                   *kubernetes.Clientset
+	FileID                   string
+	Input                    string
+	Output                   string
+	InputMount               string
+	OutputMount              string
+	ReplyTo                  string
+	RequestProcessingImage   string
+	RequestProcessingTimeout string
 }
 
-func (podArgs *PodArgs) GetClient() (error){
+func (podArgs *PodArgs) GetClient() error {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		return err
@@ -49,16 +50,16 @@ func (pa PodArgs) CreatePod() error {
 
 	var pod *core.Pod = nil
 
-	err := try.Do(func(attempt int) (bool, error){
+	err := try.Do(func(attempt int) (bool, error) {
 		var err error
 
-		ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		
-		pod, err = pa.Client.CoreV1().Pods(pa.PodNamespace).Create(ctx, podSpec, metav1.CreateOptions{}) 
 
-		if err != nil  && attempt < 5{
-			time.Sleep((time.Duration(attempt) * 5) * time.Second) // exponential 5 second wait
+		pod, err = pa.Client.CoreV1().Pods(pa.PodNamespace).Create(ctx, podSpec, metav1.CreateOptions{})
+
+		if err != nil && attempt < 5 {
+			time.Sleep(5 * time.Second) // 5 second wait
 		}
 
 		return attempt < 5, err // try 5 times
@@ -127,6 +128,7 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "InputPath", Value: pa.Input},
 						{Name: "OutputPath", Value: pa.Output},
 						{Name: "ReplyTo", Value: pa.ReplyTo},
+						{Name: "ProcessingTimeoutDuration", Value: pa.RequestProcessingTimeout},
 					},
 					VolumeMounts: []core.VolumeMount{
 						{Name: "sourcedir", MountPath: pa.InputMount},
