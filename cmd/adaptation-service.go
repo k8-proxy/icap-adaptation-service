@@ -48,6 +48,8 @@ var (
 	outputMount              = os.Getenv("OUTPUT_MOUNT")
 	requestProcessingImage   = os.Getenv("REQUEST_PROCESSING_IMAGE")
 	requestProcessingTimeout = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
+	adaptationRequestQueueHostname = os.Getenv("ADAPTATION_REQUEST_QUEUE_HOSTNAME")
+	adaptationRequestQueuePort = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
 )
 
 func main() {
@@ -126,6 +128,8 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		ReplyTo:                  d.ReplyTo,
 		RequestProcessingImage:   requestProcessingImage,
 		RequestProcessingTimeout: requestProcessingTimeout,
+		AdaptationRequestQueueHostname: adaptationRequestQueueHostname,
+		AdaptationRequestQueuePort: adaptationRequestQueuePort,
 	}
 
 	err = podArgs.GetClient()

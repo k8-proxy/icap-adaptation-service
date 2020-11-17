@@ -28,6 +28,8 @@ type PodArgs struct {
 	ReplyTo                  string
 	RequestProcessingImage   string
 	RequestProcessingTimeout string
+	AdaptationRequestQueueHostname string
+	AdaptationRequestQueuePort string
 }
 
 func (podArgs *PodArgs) GetClient() error {
@@ -131,6 +133,8 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "ReplyTo", Value: pa.ReplyTo},
 						{Name: "AmqpURL", Value: pa.AmqpURL},
 						{Name: "ProcessingTimeoutDuration", Value: pa.RequestProcessingTimeout},
+						{Name: "AdaptationRequestQueueHostname", Value: pa.AdaptationRequestQueueHostname},
+						{Name: "AdaptationRequestQueuePort", Value: pa.AdaptationRequestQueuePort},
 					},
 					VolumeMounts: []core.VolumeMount{
 						{Name: "sourcedir", MountPath: pa.InputMount},
