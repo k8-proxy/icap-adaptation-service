@@ -24,6 +24,7 @@ type PodArgs struct {
 	Output                   string
 	InputMount               string
 	OutputMount              string
+	AmqpURL                  string
 	ReplyTo                  string
 	RequestProcessingImage   string
 	RequestProcessingTimeout string
@@ -128,6 +129,7 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "InputPath", Value: pa.Input},
 						{Name: "OutputPath", Value: pa.Output},
 						{Name: "ReplyTo", Value: pa.ReplyTo},
+						{Name: "AmqpURL", Value: pa.AmqpURL},
 						{Name: "ProcessingTimeoutDuration", Value: pa.RequestProcessingTimeout},
 					},
 					VolumeMounts: []core.VolumeMount{

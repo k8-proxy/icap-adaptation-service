@@ -122,6 +122,7 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		Output:                   output,
 		InputMount:               inputMount,
 		OutputMount:              outputMount,
+		AmqpURL:				  amqpURL,
 		ReplyTo:                  d.ReplyTo,
 		RequestProcessingImage:   requestProcessingImage,
 		RequestProcessingTimeout: requestProcessingTimeout,
