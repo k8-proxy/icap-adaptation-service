@@ -50,6 +50,8 @@ var (
 	requestProcessingTimeout = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
 	adaptationRequestQueueHostname = os.Getenv("ADAPTATION_REQUEST_QUEUE_HOSTNAME")
 	adaptationRequestQueuePort = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
+	archiveAdaptationRequestQueueHostname = os.Getenv("ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME")
+	archiveAdaptationRequestQueuePort = os.Getenv("ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT")
 )
 
 func main() {
@@ -130,6 +132,8 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		RequestProcessingTimeout: requestProcessingTimeout,
 		AdaptationRequestQueueHostname: adaptationRequestQueueHostname,
 		AdaptationRequestQueuePort: adaptationRequestQueuePort,
+		ArchiveAdaptationRequestQueueHostname: archiveAdaptationRequestQueueHostname,
+		ArchiveAdaptationRequestQueuePort: archiveAdaptationRequestQueuePort,
 	}
 
 	err = podArgs.GetClient()
