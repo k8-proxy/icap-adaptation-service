@@ -52,6 +52,8 @@ var (
 	adaptationRequestQueuePort = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
 	archiveAdaptationRequestQueueHostname = os.Getenv("ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME")
 	archiveAdaptationRequestQueuePort = os.Getenv("ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT")
+	transactionEventQueueHostname = os.Getenv("TRANSACTION_EVENT_QUEUE_HOSTNAME")
+	transactionEventQueuePort = os.Getenv("TRANSACTION_EVENT_QUEUE_PORT")
 )
 
 func main() {
@@ -134,6 +136,8 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		AdaptationRequestQueuePort: adaptationRequestQueuePort,
 		ArchiveAdaptationRequestQueueHostname: archiveAdaptationRequestQueueHostname,
 		ArchiveAdaptationRequestQueuePort: archiveAdaptationRequestQueuePort,
+		TransactionEventQueueHostname: transactionEventQueueHostname,
+		TransactionEventQueuePort: transactionEventQueuePort,
 	}
 
 	err = podArgs.GetClient()

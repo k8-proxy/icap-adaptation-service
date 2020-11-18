@@ -32,6 +32,8 @@ type PodArgs struct {
 	AdaptationRequestQueuePort string
 	ArchiveAdaptationRequestQueueHostname string
 	ArchiveAdaptationRequestQueuePort string
+	TransactionEventQueueHostname string
+	TransactionEventQueuePort string
 }
 
 func (podArgs *PodArgs) GetClient() error {
@@ -139,6 +141,8 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "AdaptationRequestQueuePort", Value: pa.AdaptationRequestQueuePort},
 						{Name: "ArchiveAdaptationRequestQueueHostname", Value: pa.ArchiveAdaptationRequestQueueHostname},
 						{Name: "ArchiveAdaptationRequestQueuePort", Value: pa.ArchiveAdaptationRequestQueuePort},
+						{Name: "TransactionEventQueueHostname", Value: pa.TransactionEventQueueHostname},
+						{Name: "TransactionEventQueuePort", Value: pa.TransactionEventQueuePort},
 					},
 					VolumeMounts: []core.VolumeMount{
 						{Name: "sourcedir", MountPath: pa.InputMount},
