@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"time"
+	
+	"net/url"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -43,20 +45,50 @@ var (
 	)
 
 	podNamespace             = os.Getenv("POD_NAMESPACE")
-	amqpURL                  = os.Getenv("AMQP_URL")
 	inputMount               = os.Getenv("INPUT_MOUNT")
 	outputMount              = os.Getenv("OUTPUT_MOUNT")
 	requestProcessingImage   = os.Getenv("REQUEST_PROCESSING_IMAGE")
 	requestProcessingTimeout = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
+	adaptationRequestQueueHostname = os.Getenv("ADAPTATION_REQUEST_QUEUE_HOSTNAME")
+	adaptationRequestQueuePort = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
+	archiveAdaptationRequestQueueHostname = os.Getenv("ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME")
+	archiveAdaptationRequestQueuePort = os.Getenv("ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT")
+	transactionEventQueueHostname = os.Getenv("TRANSACTION_EVENT_QUEUE_HOSTNAME")
+	transactionEventQueuePort = os.Getenv("TRANSACTION_EVENT_QUEUE_PORT")
+	messagebrokeruser = os.Getenv("MESSAGE_BROKER_USER")
+	messagebrokerpassword = os.Getenv("MESSAGE_BROKER_PASSWORD")	
 )
 
 func main() {
-	if podNamespace == "" || amqpURL == "" || inputMount == "" || outputMount == "" {
-		log.Fatalf("init failed: POD_NAMESPACE, AMQP_URL, INPUT_MOUNT or OUTPUT_MOUNT environment variables not set")
+	if podNamespace == "" || inputMount == "" || outputMount == "" {
+		log.Fatalf("init failed: POD_NAMESPACE, INPUT_MOUNT or OUTPUT_MOUNT environment variables not set")
 	}
+	
+	if adaptationRequestQueueHostname == "" || archiveAdaptationRequestQueueHostname == "" || transactionEventQueueHostname == "" {
+	    log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_HOSTNAME, ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME or TRANSACTION_EVENT_QUEUE_HOSTNAME environment variables not set")
+	}
+	
+	if adaptationRequestQueuePort == "" || archiveAdaptationRequestQueuePort == "" || transactionEventQueuePort == "" {
+		log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_PORT, ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT or TRANSACTION_EVENT_QUEUE_PORT environment variables not set")}
+	
+	if messagebrokeruser == "" {
+		messagebrokeruser = "guest"
+	}
+	
+	if messagebrokerpassword == "" {
+		messagebrokerpassword = "guest"
+	}
+		
+	amqpUrl := url.URL{
+					Scheme: "amqp",
+					User: url.UserPassword(messagebrokeruser, messagebrokerpassword),
+					Host: fmt.Sprintf("%s:%s", adaptationRequestQueueHostname,adaptationRequestQueuePort),
+					Path: "/",
+					}
+    fmt.Println("Connecting to ", amqpUrl.Host)
 
-	conn, err := amqp.Dial(amqpURL)
-	failOnError(err, "Failed to connect to RabbitMQ")
+	conn, err := amqp.Dial(amqpUrl.String())
+	failOnError(err, fmt.Sprintf("Failed to connect to %s", amqpUrl.Host))
 	defer conn.Close()
 
 	ch, err := conn.Channel()
@@ -125,6 +157,14 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		ReplyTo:                  d.ReplyTo,
 		RequestProcessingImage:   requestProcessingImage,
 		RequestProcessingTimeout: requestProcessingTimeout,
+		AdaptationRequestQueueHostname: adaptationRequestQueueHostname,
+		AdaptationRequestQueuePort: adaptationRequestQueuePort,
+		ArchiveAdaptationRequestQueueHostname: archiveAdaptationRequestQueueHostname,
+		ArchiveAdaptationRequestQueuePort: archiveAdaptationRequestQueuePort,
+		TransactionEventQueueHostname: transactionEventQueueHostname,
+		TransactionEventQueuePort: transactionEventQueuePort,
+		MessageBrokerUser: messagebrokeruser,
+		MessageBrokerPassword: messagebrokerpassword,
 	}
 
 	err = podArgs.GetClient()
