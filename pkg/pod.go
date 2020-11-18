@@ -27,6 +27,14 @@ type PodArgs struct {
 	ReplyTo                  string
 	RequestProcessingImage   string
 	RequestProcessingTimeout string
+	AdaptationRequestQueueHostname string
+	AdaptationRequestQueuePort string
+	ArchiveAdaptationRequestQueueHostname string
+	ArchiveAdaptationRequestQueuePort string
+	TransactionEventQueueHostname string
+	TransactionEventQueuePort string
+	MessageBrokerUser string
+	MessageBrokerPassword string
 }
 
 func (podArgs *PodArgs) GetClient() error {
@@ -129,6 +137,14 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "OutputPath", Value: pa.Output},
 						{Name: "ReplyTo", Value: pa.ReplyTo},
 						{Name: "ProcessingTimeoutDuration", Value: pa.RequestProcessingTimeout},
+						{Name: "AdaptationRequestQueueHostname", Value: pa.AdaptationRequestQueueHostname},
+						{Name: "AdaptationRequestQueuePort", Value: pa.AdaptationRequestQueuePort},
+						{Name: "ArchiveAdaptationRequestQueueHostname", Value: pa.ArchiveAdaptationRequestQueueHostname},
+						{Name: "ArchiveAdaptationRequestQueuePort", Value: pa.ArchiveAdaptationRequestQueuePort},
+						{Name: "TransactionEventQueueHostname", Value: pa.TransactionEventQueueHostname},
+						{Name: "TransactionEventQueuePort", Value: pa.TransactionEventQueuePort},
+						{Name: "MessageBrokerUser", Value: pa.MessageBrokerUser},
+						{Name: "MessageBrokerPassword", Value: pa.MessageBrokerPassword},
 					},
 					VolumeMounts: []core.VolumeMount{
 						{Name: "sourcedir", MountPath: pa.InputMount},
