@@ -56,8 +56,7 @@ var (
 	transactionEventQueueHostname = os.Getenv("TRANSACTION_EVENT_QUEUE_HOSTNAME")
 	transactionEventQueuePort = os.Getenv("TRANSACTION_EVENT_QUEUE_PORT")
 	messagebrokeruser = os.Getenv("MESSAGE_BROKER_USER")
-	messagebrokerpassword = os.Getenv("MESSAGE_BROKER_PASSWORD")
-	
+	messagebrokerpassword = os.Getenv("MESSAGE_BROKER_PASSWORD")	
 )
 
 func main() {
@@ -164,6 +163,8 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		ArchiveAdaptationRequestQueuePort: archiveAdaptationRequestQueuePort,
 		TransactionEventQueueHostname: transactionEventQueueHostname,
 		TransactionEventQueuePort: transactionEventQueuePort,
+		MessageBrokerUser: messagebrokeruser,
+		MessageBrokerPassword: messagebrokerpassword,
 	}
 
 	err = podArgs.GetClient()
