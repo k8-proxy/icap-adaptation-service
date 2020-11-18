@@ -89,7 +89,7 @@ func main() {
     fmt.Println("Connecting to ", amqpUrl.Host)
 
 	conn, err := amqp.Dial(amqpUrl.String())
-	failOnError(err, fmt.Sprint("Failed to connect to %s", amqpUrl.Host))
+	failOnError(err, fmt.Sprintf("Failed to connect to %s", amqpUrl.Host))
 	defer conn.Close()
 
 	ch, err := conn.Channel()
