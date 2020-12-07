@@ -1,12 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"time"
-	
+
 	"net/url"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -44,48 +43,49 @@ var (
 		[]string{"status"},
 	)
 
-	podNamespace             = os.Getenv("POD_NAMESPACE")
-	inputMount               = os.Getenv("INPUT_MOUNT")
-	outputMount              = os.Getenv("OUTPUT_MOUNT")
-	requestProcessingImage   = os.Getenv("REQUEST_PROCESSING_IMAGE")
-	requestProcessingTimeout = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
-	adaptationRequestQueueHostname = os.Getenv("ADAPTATION_REQUEST_QUEUE_HOSTNAME")
-	adaptationRequestQueuePort = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
+	podNamespace                          = os.Getenv("POD_NAMESPACE")
+	inputMount                            = os.Getenv("INPUT_MOUNT")
+	outputMount                           = os.Getenv("OUTPUT_MOUNT")
+	requestProcessingImage                = os.Getenv("REQUEST_PROCESSING_IMAGE")
+	requestProcessingTimeout              = os.Getenv("REQUEST_PROCESSING_TIMEOUT")
+	adaptationRequestQueueHostname        = os.Getenv("ADAPTATION_REQUEST_QUEUE_HOSTNAME")
+	adaptationRequestQueuePort            = os.Getenv("ADAPTATION_REQUEST_QUEUE_PORT")
 	archiveAdaptationRequestQueueHostname = os.Getenv("ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME")
-	archiveAdaptationRequestQueuePort = os.Getenv("ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT")
-	transactionEventQueueHostname = os.Getenv("TRANSACTION_EVENT_QUEUE_HOSTNAME")
-	transactionEventQueuePort = os.Getenv("TRANSACTION_EVENT_QUEUE_PORT")
-	messagebrokeruser = os.Getenv("MESSAGE_BROKER_USER")
-	messagebrokerpassword = os.Getenv("MESSAGE_BROKER_PASSWORD")	
+	archiveAdaptationRequestQueuePort     = os.Getenv("ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT")
+	transactionEventQueueHostname         = os.Getenv("TRANSACTION_EVENT_QUEUE_HOSTNAME")
+	transactionEventQueuePort             = os.Getenv("TRANSACTION_EVENT_QUEUE_PORT")
+	messagebrokeruser                     = os.Getenv("MESSAGE_BROKER_USER")
+	messagebrokerpassword                 = os.Getenv("MESSAGE_BROKER_PASSWORD")
 )
 
 func main() {
 	if podNamespace == "" || inputMount == "" || outputMount == "" {
 		log.Fatalf("init failed: POD_NAMESPACE, INPUT_MOUNT or OUTPUT_MOUNT environment variables not set")
 	}
-	
+
 	if adaptationRequestQueueHostname == "" || archiveAdaptationRequestQueueHostname == "" || transactionEventQueueHostname == "" {
-	    log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_HOSTNAME, ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME or TRANSACTION_EVENT_QUEUE_HOSTNAME environment variables not set")
+		log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_HOSTNAME, ARCHIVE_ADAPTATION_QUEUE_REQUEST_HOSTNAME or TRANSACTION_EVENT_QUEUE_HOSTNAME environment variables not set")
 	}
-	
+
 	if adaptationRequestQueuePort == "" || archiveAdaptationRequestQueuePort == "" || transactionEventQueuePort == "" {
-		log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_PORT, ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT or TRANSACTION_EVENT_QUEUE_PORT environment variables not set")}
-	
+		log.Fatalf("init failed: ADAPTATION_REQUEST_QUEUE_PORT, ARCHIVE_ADAPTATION_REQUEST_QUEUE_PORT or TRANSACTION_EVENT_QUEUE_PORT environment variables not set")
+	}
+
 	if messagebrokeruser == "" {
 		messagebrokeruser = "guest"
 	}
-	
+
 	if messagebrokerpassword == "" {
 		messagebrokerpassword = "guest"
 	}
-		
+
 	amqpUrl := url.URL{
-					Scheme: "amqp",
-					User: url.UserPassword(messagebrokeruser, messagebrokerpassword),
-					Host: fmt.Sprintf("%s:%s", adaptationRequestQueueHostname,adaptationRequestQueuePort),
-					Path: "/",
-					}
-    fmt.Println("Connecting to ", amqpUrl.Host)
+		Scheme: "amqp",
+		User:   url.UserPassword(messagebrokeruser, messagebrokerpassword),
+		Host:   fmt.Sprintf("%s:%s", adaptationRequestQueueHostname, adaptationRequestQueuePort),
+		Path:   "/",
+	}
+	fmt.Println("Connecting to ", amqpUrl.Host)
 
 	conn, err := amqp.Dial(amqpUrl.String())
 	failOnError(err, fmt.Sprintf("Failed to connect to %s", amqpUrl.Host))
@@ -134,40 +134,45 @@ func processMessage(d amqp.Delivery) (bool, error) {
 		procTime.Observe(float64(time.Since(start).Milliseconds()))
 	}(time.Now())
 
-	log.Printf("received a message: %s", d.Body)
-	var body map[string]interface{}
-
-	err := json.Unmarshal(d.Body, &body)
-	if err != nil {
-		msgTotal.WithLabelValues(jsonerr).Inc()
-		return false, fmt.Errorf("Failed to read message body: %v", err)
+	if d.Headers["file-id"] == nil ||
+		d.Headers["source-file-location"] == nil ||
+		d.Headers["rebuilt-file-location"] == nil {
+		return false, fmt.Errorf("Headers value is nil")
 	}
 
-	fileID := body["file-id"].(string)
-	input := body["source-file-location"].(string)
-	output := body["rebuilt-file-location"].(string)
+	fileID := d.Headers["file-id"].(string)
+	input := d.Headers["source-file-location"].(string)
+	output := d.Headers["rebuilt-file-location"].(string)
+	generateReport := "false"
+
+	if d.Headers["generate-report"] != nil {
+		generateReport = d.Headers["generate-report"].(string)
+	}
+
+	log.Printf("Received a message for file: %s", fileID)
 
 	podArgs := pod.PodArgs{
-		PodNamespace:             podNamespace,
-		FileID:                   fileID,
-		Input:                    input,
-		Output:                   output,
-		InputMount:               inputMount,
-		OutputMount:              outputMount,
-		ReplyTo:                  d.ReplyTo,
-		RequestProcessingImage:   requestProcessingImage,
-		RequestProcessingTimeout: requestProcessingTimeout,
-		AdaptationRequestQueueHostname: adaptationRequestQueueHostname,
-		AdaptationRequestQueuePort: adaptationRequestQueuePort,
+		PodNamespace:                          podNamespace,
+		FileID:                                fileID,
+		Input:                                 input,
+		Output:                                output,
+		GenerateReport:                        generateReport,
+		InputMount:                            inputMount,
+		OutputMount:                           outputMount,
+		ReplyTo:                               d.ReplyTo,
+		RequestProcessingImage:                requestProcessingImage,
+		RequestProcessingTimeout:              requestProcessingTimeout,
+		AdaptationRequestQueueHostname:        adaptationRequestQueueHostname,
+		AdaptationRequestQueuePort:            adaptationRequestQueuePort,
 		ArchiveAdaptationRequestQueueHostname: archiveAdaptationRequestQueueHostname,
-		ArchiveAdaptationRequestQueuePort: archiveAdaptationRequestQueuePort,
-		TransactionEventQueueHostname: transactionEventQueueHostname,
-		TransactionEventQueuePort: transactionEventQueuePort,
-		MessageBrokerUser: messagebrokeruser,
-		MessageBrokerPassword: messagebrokerpassword,
+		ArchiveAdaptationRequestQueuePort:     archiveAdaptationRequestQueuePort,
+		TransactionEventQueueHostname:         transactionEventQueueHostname,
+		TransactionEventQueuePort:             transactionEventQueuePort,
+		MessageBrokerUser:                     messagebrokeruser,
+		MessageBrokerPassword:                 messagebrokerpassword,
 	}
 
-	err = podArgs.GetClient()
+	err := podArgs.GetClient()
 	if err != nil {
 		msgTotal.WithLabelValues(k8sclient).Inc()
 		return true, fmt.Errorf("Failed to get client for cluster: %v", err)

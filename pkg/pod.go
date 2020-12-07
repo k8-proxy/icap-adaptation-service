@@ -17,24 +17,25 @@ import (
 )
 
 type PodArgs struct {
-	PodNamespace             string
-	Client                   *kubernetes.Clientset
-	FileID                   string
-	Input                    string
-	Output                   string
-	InputMount               string
-	OutputMount              string
-	ReplyTo                  string
-	RequestProcessingImage   string
-	RequestProcessingTimeout string
-	AdaptationRequestQueueHostname string
-	AdaptationRequestQueuePort string
+	PodNamespace                          string
+	Client                                *kubernetes.Clientset
+	FileID                                string
+	Input                                 string
+	Output                                string
+	GenerateReport                        string
+	InputMount                            string
+	OutputMount                           string
+	ReplyTo                               string
+	RequestProcessingImage                string
+	RequestProcessingTimeout              string
+	AdaptationRequestQueueHostname        string
+	AdaptationRequestQueuePort            string
 	ArchiveAdaptationRequestQueueHostname string
-	ArchiveAdaptationRequestQueuePort string
-	TransactionEventQueueHostname string
-	TransactionEventQueuePort string
-	MessageBrokerUser string
-	MessageBrokerPassword string
+	ArchiveAdaptationRequestQueuePort     string
+	TransactionEventQueueHostname         string
+	TransactionEventQueuePort             string
+	MessageBrokerUser                     string
+	MessageBrokerPassword                 string
 }
 
 func (podArgs *PodArgs) GetClient() error {
@@ -135,6 +136,7 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 						{Name: "FileId", Value: pa.FileID},
 						{Name: "InputPath", Value: pa.Input},
 						{Name: "OutputPath", Value: pa.Output},
+						{Name: "GenerateReport", Value: pa.GenerateReport},
 						{Name: "ReplyTo", Value: pa.ReplyTo},
 						{Name: "ProcessingTimeoutDuration", Value: pa.RequestProcessingTimeout},
 						{Name: "AdaptationRequestQueueHostname", Value: pa.AdaptationRequestQueueHostname},
@@ -153,11 +155,11 @@ func (pa PodArgs) GetPodObject() *core.Pod {
 					},
 					Resources: core.ResourceRequirements{
 						Limits: core.ResourceList{
-							core.ResourceCPU: resource.MustParse("1"),
+							core.ResourceCPU:    resource.MustParse("1"),
 							core.ResourceMemory: resource.MustParse("10000Mi"),
 						},
 						Requests: core.ResourceList{
-							core.ResourceCPU: resource.MustParse("0.2"),
+							core.ResourceCPU:    resource.MustParse("0.2"),
 							core.ResourceMemory: resource.MustParse("250Mi"),
 						},
 					},
